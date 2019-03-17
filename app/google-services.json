@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "551674680521",
+    "firebase_url": "https://societyentrancesystem.firebaseio.com",
+    "project_id": "societyentrancesystem",
+    "storage_bucket": "societyentrancesystem.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:551674680521:android:f61c4601f38f7a7e",
+        "android_client_info": {
+          "package_name": "com.lobxy.societyentrancesystem"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "551674680521-nq0ev3dp7k4sla5jn2213fsg1g4bc9sm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lobxy.societyentrancesystem",
+            "certificate_hash": "a280f520e107c79b086b3c875b868f2890520234"
+          }
+        },
+        {
+          "client_id": "551674680521-5fjgni19vob2qeqh7uv4kih69trvrg7v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBny8cAv2vgMtnczu87kyNueyehTnjMeh0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "551674680521-5fjgni19vob2qeqh7uv4kih69trvrg7v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
