@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,12 +25,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.lobxy.societyentrancesystem.Model.User;
 import com.lobxy.societyentrancesystem.R;
 
 import java.io.ByteArrayOutputStream;
 
 public class LoginActivity extends AppCompatActivity {
+
+    /*
+     * Every time a user logs in, check the shared pref of the image which is saved by the name of
+      user id, if uid(old) and new are same, show same qr image, if different, replace old with new image.
+     * */
 
     public static final String QrImagePrefs = "QrImage";
 
@@ -50,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
         sharedpreferences = getSharedPreferences(QrImagePrefs, Context.MODE_PRIVATE);
 
         mAuth = FirebaseAuth.getInstance();
-        mReference = FirebaseDatabase.getInstance().getReference("users");
+        mReference = FirebaseDatabase.getInstance().getReference("userData");
 
         et_email = findViewById(R.id.login_email);
         et_password = findViewById(R.id.login_password);
@@ -83,94 +91,100 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(mEmail, mPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-
-                    checkPreferences();
-
-
-//                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-//                    finish();
-
-                } else {
-                    Log.i("User login", "onComplete: Failed: " + task.getException().getMessage());
-                }
+                if (task.isSuccessful()) getImageFromDatabase();
+                else Log.i("User login", "onComplete: Failed: " + task.getException().getMessage());
 
             }
         });
     }
 
-    private void checkPreferences() {
-
-        String qrImage = sharedpreferences.getString("qrImage", null);
-        if (qrImage != null) {
-            checkQrImage();
-        } else {
-            //save it into preferences.
-            getQrImage();
-        }
-
-    }
-
-    //Todo: figure things out here.
-
-    private void checkQrImage() {
-
-    }
-
-    private void getQrImage() {
-        //get image from firebase and save it into the device using shared preferences.
+    private void getImageFromDatabase() {
 
         final String oldQrImage = sharedpreferences.getString("qrImage", null);
 
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("userData");
+        if (oldQrImage == null) {
+            //get image and save it.
+            saveImage();
+        } else {
+            //image present, compare between images.
 
-        String uid = mAuth.getCurrentUser().getUid();
+            String uid = mAuth.getCurrentUser().getUid();
 
-        ref.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            mReference.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                if (dataSnapshot.exists()) {
-                    User user = dataSnapshot.getValue(User.class);
+                    if (dataSnapshot.exists()) {
+                        User user = dataSnapshot.getValue(User.class);
 
-                    //imageUrl
-                    String newQrImage = user.getQrImageURL();
-                    if (newQrImage.equals(oldQrImage)) {
-                        //same user logged in.
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        finish();
+                        //image download url
+                        String newQrImage = user.getQrImageURL();
+
+                        //compare between images.
+                        compareImages(oldQrImage, newQrImage);
 
                     } else {
-                        //delete old image.
-                        sharedpreferences.edit().remove("qrImage").commit();
-
-                        //save new one.
-                        //convert image into string.
-                        //todo: convert firebase image into bitmap.
-
-                        Bitmap image = BitmapFactory.decodeStream(stream);
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        image.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                        byte[] b = baos.toByteArray();
-
-                        String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-
-                        SharedPreferences.Editor edit = sharedpreferences.edit();
-                        edit.putString("image_data", encodedImage);
-                        edit.apply();
-
+                        Toast.makeText(LoginActivity.this, "Data missing", Toast.LENGTH_SHORT).show();
                     }
 
                 }
 
-            }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.i("getQrImage", "onCancelled: databaseError: " + databaseError.getMessage());
+                }
+            });
+        }
 
+    }
+
+    private void compareImages(String oldQrImage, String newQrImage) {
+
+        if (newQrImage.equals(oldQrImage)) {
+            //same user logged in.
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+
+        } else {
+            //delete old image.
+            sharedpreferences.edit().remove("qrImage").commit();
+            //get and save new image.
+            saveImage();
+        }
+    }
+
+    private void saveImage() {
+        //Download image and convert it into string and save it into prefs.
+
+        //todo: convert firebase image into bitmap.
+
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        final StorageReference filepath = storageRef.child("QRImages").child(mEmail);
+
+        final long ONE_MEGABYTE = 1024 * 1024;
+
+        filepath.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.i("getQrImage", "onCancelled: databaseError: " + databaseError.getMessage());
+            public void onSuccess(byte[] bytes) {
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                //converting image into encoded string.
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[] b = baos.toByteArray();
+
+                String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+
+                Log.i("Image2String", "onSuccess: encodedImage: " + encodedImage);
+
+                //saving image into shared preferences.
+                SharedPreferences.Editor edit = sharedpreferences.edit();
+                edit.putString("qrImage", encodedImage);
+                edit.apply();
             }
         });
 
     }
 
+    //EOC
 }

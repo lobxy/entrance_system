@@ -17,11 +17,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String QrImagePrefs = "QrImage";
 
-    /*
-     * Or every time a user logs in, check the shared pref of the image which is saved by the name of
-      user id, if uid(old) and new are same, show same qr image, if different, get new image and save qr image.
-     * */
-
     private ImageView mQRImage;
     SharedPreferences sharedPreferences;
 
@@ -30,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         sharedPreferences = getSharedPreferences(QrImagePrefs, Context.MODE_PRIVATE);
+
+        mQRImage = findViewById(R.id.user_main_qrImage);
 
         Button btn_showImage = findViewById(R.id.user_main_showQR);
         btn_showImage.setOnClickListener(new View.OnClickListener() {
@@ -41,15 +38,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showImage() {
-        //get and set image here.
+        //convert saved string into image and set image.
 
-
-        //convert string into image.
         String previouslyEncodedImage = sharedPreferences.getString("qrImage", null);
 
         if (!previouslyEncodedImage.equals("")) {
             byte[] b = Base64.decode(previouslyEncodedImage, Base64.DEFAULT);
             Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
+
             mQRImage.setImageBitmap(bitmap);
         }
     }
