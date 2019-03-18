@@ -1,5 +1,6 @@
 package com.lobxy.societyentrancesystem.Activities;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,8 +28,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.lobxy.societyentrancesystem.Admin.AdminMainActivity;
 import com.lobxy.societyentrancesystem.Model.User;
 import com.lobxy.societyentrancesystem.R;
+import com.lobxy.societyentrancesystem.Utils.Connection;
 
 import java.io.ByteArrayOutputStream;
 
@@ -50,10 +53,21 @@ public class LoginActivity extends AppCompatActivity {
 
     SharedPreferences sharedpreferences;
 
+    private ProgressDialog progressDialog;
+
+    private Connection connection;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_signup);
+
+        connection = new Connection(this);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Working...");
+        progressDialog.setInverseBackgroundForced(false);
+        progressDialog.setCancelable(false);
 
         sharedpreferences = getSharedPreferences(QrImagePrefs, Context.MODE_PRIVATE);
 
@@ -68,7 +82,10 @@ public class LoginActivity extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                validate();
+                if (connection.check()) validate();
+                else {
+                    Toast.makeText(LoginActivity.this, "Not connected to internet", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -88,10 +105,20 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         //login user.
+        progressDialog.show();
         mAuth.signInWithEmailAndPassword(mEmail, mPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) getImageFromDatabase();
+                progressDialog.dismiss();
+                if (task.isSuccessful()) {
+                    if (mEmail.equals("admin@a.com")) {
+                        startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                        finish();
+                    } else {
+                    }
+                    getImageFromDatabase();
+
+                }
                 else Log.i("User login", "onComplete: Failed: " + task.getException().getMessage());
 
             }
@@ -99,6 +126,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void getImageFromDatabase() {
+
+        progressDialog.show();
 
         final String oldQrImage = sharedpreferences.getString("qrImage", null);
 
@@ -113,7 +142,7 @@ public class LoginActivity extends AppCompatActivity {
             mReference.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
+                    progressDialog.dismiss();
                     if (dataSnapshot.exists()) {
                         User user = dataSnapshot.getValue(User.class);
 
@@ -158,6 +187,8 @@ public class LoginActivity extends AppCompatActivity {
 
         //todo: convert firebase image into bitmap.
 
+        progressDialog.show();
+
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         final StorageReference filepath = storageRef.child("QRImages").child(mEmail);
 
@@ -181,6 +212,11 @@ public class LoginActivity extends AppCompatActivity {
                 SharedPreferences.Editor edit = sharedpreferences.edit();
                 edit.putString("qrImage", encodedImage);
                 edit.apply();
+
+                progressDialog.dismiss();
+
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                finish();
             }
         });
 

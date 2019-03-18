@@ -116,12 +116,15 @@ public class AddUserActivity extends AppCompatActivity {
             Toast.makeText(this, "Internet service unavailable", Toast.LENGTH_SHORT).show();
 
         } else {
+            Log.i("Process", "validated");
             signInUser();
         }
 
     }
 
     private void signInUser() {
+
+        bar.setVisibility(View.VISIBLE);
 
         FirebaseAuth mAuth2;
 
@@ -140,7 +143,10 @@ public class AddUserActivity extends AppCompatActivity {
         mAuth2.createUserWithEmailAndPassword(mEmail, mPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
+                bar.setVisibility(View.INVISIBLE);
                 if (task.isSuccessful()) {
+                    Log.i("Process", "User Created");
+
                     mUid = task.getResult().getUser().getUid();
 
                     createJsonData();
@@ -155,6 +161,8 @@ public class AddUserActivity extends AppCompatActivity {
 
     public void createJsonData() {
 
+        bar.setVisibility(View.VISIBLE);
+
         JSONObject jsonObject = new JSONObject();
         try {
 
@@ -165,6 +173,9 @@ public class AddUserActivity extends AppCompatActivity {
             jsonObject.put("flat", mFlat);
             jsonObject.put("block", mBlock);
 
+            bar.setVisibility(View.INVISIBLE);
+            Log.i("Process", "json data created");
+
             createQrCode(jsonObject.toString());
 
         } catch (JSONException e) {
@@ -173,6 +184,7 @@ public class AddUserActivity extends AppCompatActivity {
     }
 
     public void createQrCode(String jsonData) {
+        bar.setVisibility(View.VISIBLE);
         //encode data.
         byte[] encodeValue = Base64.encode(jsonData.getBytes(), Base64.DEFAULT);
         String data = new String(encodeValue);
@@ -185,28 +197,35 @@ public class AddUserActivity extends AppCompatActivity {
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
             Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
 
-            Log.d("QR Generator", "Created");
-
             //Preparing data for firebase storage
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
             byte[] img = baos.toByteArray();
+            bar.setVisibility(View.INVISIBLE);
+
+            Log.i("QR Generator", "Qr code Created");
+
             uploadImg(img);
 
 
         } catch (WriterException e) {
+            bar.setVisibility(View.INVISIBLE);
+
             e.printStackTrace();
         }
 
     }
 
     private void uploadImg(byte[] img) {
+        bar.setVisibility(View.VISIBLE);
 
         final StorageReference filepath = mStorageRef.child("QRImages").child(mEmail);
 
         filepath.putBytes(img).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                bar.setVisibility(View.INVISIBLE);
+
                 Log.i("Save Image", "onSuccess: Upload success");
 
                 filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -229,19 +248,25 @@ public class AddUserActivity extends AppCompatActivity {
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-
+                bar.setVisibility(View.INVISIBLE);
+                Log.i("saveImage", "onFailure: error: " + e.getMessage());
             }
         });
     }
 
     private void saveUserData() {
+        bar.setVisibility(View.VISIBLE);
 
         User user = new User(mUid, mName, mEmail, mPassword, mContact, mFlat, mBlock, mQRImageUrl);
 
         mReference.child(mUid).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                bar.setVisibility(View.INVISIBLE);
+
                 if (task.isSuccessful()) {
+                    Log.d("Process", "User data saved");
+
                     Toast.makeText(AddUserActivity.this, "User Created", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
