@@ -4,9 +4,9 @@ public class User {
     public User() {
     }
 
-    private String name, email, password, contact, uid, flat, block, qrImageURL;
+    private String name, email, password, contact, uid, flat, block, qrImageURL, pincode;
 
-    public User(String uid, String name, String email, String password, String contact, String flat, String block, String qrImageURL) {
+    public User(String uid, String name, String email, String password, String contact, String flat, String block, String qrImageURL, String pincode) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -15,6 +15,15 @@ public class User {
         this.flat = flat;
         this.block = block;
         this.qrImageURL = qrImageURL;
+        this.pincode = pincode;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
     }
 
     public String getQrImageURL() {

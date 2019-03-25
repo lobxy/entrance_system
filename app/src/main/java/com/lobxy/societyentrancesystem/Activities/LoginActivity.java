@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
       user id, if uid(old) and new are same, show same qr image, if different, replace old with new image.
      * */
 
-    public static final String QrImagePrefs = "QrImage";
+    public static final String Prefs = "UserData";
 
     private EditText et_email, et_password;
 
@@ -69,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setInverseBackgroundForced(false);
         progressDialog.setCancelable(false);
 
-        sharedpreferences = getSharedPreferences(QrImagePrefs, Context.MODE_PRIVATE);
+        sharedpreferences = getSharedPreferences(Prefs, Context.MODE_PRIVATE);
 
         mAuth = FirebaseAuth.getInstance();
         mReference = FirebaseDatabase.getInstance().getReference("userData");
@@ -110,22 +110,23 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 progressDialog.dismiss();
+
                 if (task.isSuccessful()) {
+
                     if (mEmail.equals("admin@a.com")) {
                         startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
                         finish();
-                    } else {
-                    }
-                    getImageFromDatabase();
+                    } else getUserData();
 
+                } else {
+                    Toast.makeText(LoginActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    Log.i("User login", "onComplete: Failed: " + task.getException().getMessage());
                 }
-                else Log.i("User login", "onComplete: Failed: " + task.getException().getMessage());
-
             }
         });
     }
 
-    private void getImageFromDatabase() {
+    private void getUserData() {
 
         progressDialog.show();
 
@@ -148,9 +149,11 @@ public class LoginActivity extends AppCompatActivity {
 
                         //image download url
                         String newQrImage = user.getQrImageURL();
+                        String pincode = user.getPincode();
 
                         //compare between images.
                         compareImages(oldQrImage, newQrImage);
+                        savePin(pincode);
 
                     } else {
                         Toast.makeText(LoginActivity.this, "Data missing", Toast.LENGTH_SHORT).show();
@@ -220,6 +223,16 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void savePin(String pincode) {
+        //remove old pin.
+        sharedpreferences.edit().remove("pincode").commit();
+
+        //set a new one.
+        SharedPreferences.Editor edit = sharedpreferences.edit();
+        edit.putString("pincode", pincode);
+        edit.apply();
     }
 
     //EOC

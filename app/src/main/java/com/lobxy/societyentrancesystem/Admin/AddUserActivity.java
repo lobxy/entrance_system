@@ -43,9 +43,9 @@ import java.io.ByteArrayOutputStream;
 
 public class AddUserActivity extends AppCompatActivity {
 
-    private EditText edit_name, edit_contact, edit_email, edit_password, edit_flat, edit_block;
+    private EditText edit_name, edit_contact, edit_email, edit_password, edit_flat, edit_block, edit_pincode;
 
-    private String mName, mContact, mEmail, mPassword, mFlat, mBlock, mQRImageUrl, mUid;
+    private String mName, mContact, mEmail, mPassword, mFlat, mBlock, mQRImageUrl, mUid, mPincode;
 
     private DatabaseReference mReference;
     private FirebaseAuth mAuth;
@@ -78,6 +78,7 @@ public class AddUserActivity extends AppCompatActivity {
         edit_password = findViewById(R.id.addUser_password);
         edit_flat = findViewById(R.id.addUser_flat);
         edit_block = findViewById(R.id.addUser_block);
+        edit_pincode = findViewById(R.id.addUser_pin);
 
         bar = findViewById(R.id.addUser_bar);
 
@@ -98,6 +99,7 @@ public class AddUserActivity extends AppCompatActivity {
         mPassword = edit_password.getText().toString().trim();
         mFlat = edit_flat.getText().toString().trim();
         mBlock = edit_block.getText().toString().trim();
+        mPincode = edit_pincode.getText().toString().trim();
 
         if (mName.isEmpty() || mContact.isEmpty() || mEmail.isEmpty() || mPassword.isEmpty() || mFlat.isEmpty() || mBlock.isEmpty()) {
 
@@ -110,6 +112,10 @@ public class AddUserActivity extends AppCompatActivity {
         } else if (!Patterns.EMAIL_ADDRESS.matcher(mEmail).matches()) {
 
             Toast.makeText(this, "Invalid email", Toast.LENGTH_SHORT).show();
+
+        } else if (mPincode.length() < 4) {
+
+            Toast.makeText(this, "Pincode must be 4 digit long", Toast.LENGTH_SHORT).show();
 
         } else if (!connection.check()) {
 
@@ -257,7 +263,7 @@ public class AddUserActivity extends AppCompatActivity {
     private void saveUserData() {
         bar.setVisibility(View.VISIBLE);
 
-        User user = new User(mUid, mName, mEmail, mPassword, mContact, mFlat, mBlock, mQRImageUrl);
+        User user = new User(mUid, mName, mEmail, mPassword, mContact, mFlat, mBlock, mQRImageUrl, mPincode);
 
         mReference.child(mUid).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
