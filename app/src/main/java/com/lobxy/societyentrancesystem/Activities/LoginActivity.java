@@ -31,6 +31,7 @@ import com.google.firebase.storage.StorageReference;
 import com.lobxy.societyentrancesystem.Admin.AdminMainActivity;
 import com.lobxy.societyentrancesystem.Model.User;
 import com.lobxy.societyentrancesystem.R;
+import com.lobxy.societyentrancesystem.Reader.ReaderActivity;
 import com.lobxy.societyentrancesystem.Utils.Connection;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
      * */
 
     public static final String Prefs = "UserData";
+    private static final String TAG = "LOGIN";
 
     private EditText et_email, et_password;
 
@@ -60,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login_signup);
+        setContentView(R.layout.activity_login);
 
         connection = new Connection(this);
 
@@ -112,12 +114,15 @@ public class LoginActivity extends AppCompatActivity {
                 progressDialog.dismiss();
 
                 if (task.isSuccessful()) {
-
                     if (mEmail.equals("admin@a.com")) {
                         startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
                         finish();
-                    } else getUserData();
-
+                    } else if (mEmail.equals("reader@a.com")) {
+                        startActivity(new Intent(LoginActivity.this, ReaderActivity.class));
+                        finish();
+                    } else {
+                        getUserData();
+                    }
                 } else {
                     Toast.makeText(LoginActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     Log.i("User login", "onComplete: Failed: " + task.getException().getMessage());
@@ -133,10 +138,12 @@ public class LoginActivity extends AppCompatActivity {
         final String oldQrImage = sharedpreferences.getString("qrImage", null);
 
         if (oldQrImage == null) {
-            //get image and save it.
+            //For first time users
+            //get image and save it
             saveImage();
         } else {
-            //image present, compare between images.
+            //for non-first time users
+            //image present, compare between images
 
             String uid = mAuth.getCurrentUser().getUid();
 
@@ -144,6 +151,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     progressDialog.dismiss();
+
                     if (dataSnapshot.exists()) {
                         User user = dataSnapshot.getValue(User.class);
 
@@ -151,9 +159,9 @@ public class LoginActivity extends AppCompatActivity {
                         String newQrImage = user.getQrImageURL();
                         String pincode = user.getPincode();
 
-                        //compare between images.
+                        //compare between images
                         compareImages(oldQrImage, newQrImage);
-                        savePin(pincode);
+                        // savePin(pincode);
 
                     } else {
                         Toast.makeText(LoginActivity.this, "Data missing", Toast.LENGTH_SHORT).show();
@@ -163,6 +171,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
+                    progressDialog.dismiss();
+
                     Log.i("getQrImage", "onCancelled: databaseError: " + databaseError.getMessage());
                 }
             });
@@ -174,12 +184,14 @@ public class LoginActivity extends AppCompatActivity {
 
         if (newQrImage.equals(oldQrImage)) {
             //same user logged in.
+            Log.i(TAG, "compareImages: same image");
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
 
         } else {
             //delete old image.
-            sharedpreferences.edit().remove("qrImage").commit();
+            Log.i(TAG, "compareImages: Different Image");
+            sharedpreferences.edit().remove("qrImage").apply();
             //get and save new image.
             saveImage();
         }
@@ -187,8 +199,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private void saveImage() {
         //Download image and convert it into string and save it into prefs.
-
-        //todo: convert firebase image into bitmap.
 
         progressDialog.show();
 
@@ -225,15 +235,22 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void savePin(String pincode) {
-        //remove old pin.
-        sharedpreferences.edit().remove("pincode").commit();
+//    private void savePin(String pincode) {
+//        if (!sharedpreferences.getString("pincode", "").isEmpty()) {
+//            //set a new one.
+//            SharedPreferences.Editor edit = sharedpreferences.edit();
+//            edit.putString("pincode", pincode);
+//            edit.apply();
+//        } else {
+//            Toast.makeText(this, "Pin not found", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        //get previous saved pin.
+//
+//        //remove old pin.
+//        sharedpreferences.edit().remove("pincode").commit();
+//    }
 
-        //set a new one.
-        SharedPreferences.Editor edit = sharedpreferences.edit();
-        edit.putString("pincode", pincode);
-        edit.apply();
-    }
 
     //EOC
 }

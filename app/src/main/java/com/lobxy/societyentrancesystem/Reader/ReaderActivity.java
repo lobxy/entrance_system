@@ -1,11 +1,14 @@
-package com.lobxy.societyentrancesystem.Activities;
+package com.lobxy.societyentrancesystem.Reader;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,6 +16,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -21,6 +25,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.lobxy.societyentrancesystem.Activities.LoginActivity;
 import com.lobxy.societyentrancesystem.R;
 
 import org.json.JSONException;
@@ -35,13 +40,19 @@ import java.util.Locale;
 
 public class ReaderActivity extends AppCompatActivity {
 
+    private static final String TAG = "Reader";
     private DatabaseReference mReference;
+    private FirebaseAuth mAuth;
 
     private IntentIntegrator mQrScanner;
 
     private TextView text_data;
 
     private String mTime, mDate, mName, mProfileUrl;
+
+    private ProgressDialog mProgressDialog;
+
+    private boolean mMode = true; // false means exit and true means entry.
 
     //todo:1-get register's last Parent node value i.e last date.
     //todo:2-if the date is today's,put data under it.
@@ -51,22 +62,48 @@ public class ReaderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setMessage("Working...");
+        mProgressDialog.setInverseBackgroundForced(false);
+        mProgressDialog.setCancelable(false);
+
+        mAuth = FirebaseAuth.getInstance();
         mReference = FirebaseDatabase.getInstance().getReference("Register_Global");
 
         setContentView(R.layout.activity_reader);
         mQrScanner = new IntentIntegrator(this);
 
-        Button readCode = findViewById(R.id.reader_readCode);
+        Button readCode = findViewById(R.id.reader_button_readCode);
+        readCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //start to read the code.
+                mQrScanner.initiateScan();
+            }
+        });
+
+
+        final Button changeMode = findViewById(R.id.reader_button_mode);
+
+        changeMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMode) {
+                    mMode = false;
+                    changeMode.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+                    changeMode.setText("Exit Mode");
+
+                } else {
+                    mMode = true;
+                    changeMode.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                    changeMode.setText("Entry Mode");
+                }
+            }
+        });
 
         text_data = findViewById(R.id.reader_text);
 
     }
-
-    public void readQrCode(View view) {
-        //intializing scan object
-        mQrScanner.initiateScan();
-    }
-
 
     //Getting the scan results
     @Override
@@ -91,17 +128,20 @@ public class ReaderActivity extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(newData);
 
                     mName = jsonObject.getString("name");
-                    mProfileUrl = jsonObject.getString("qrImageURL");
+                    mProfileUrl = jsonObject.getString("uid");
 
+                    text_data.setText("name: " + mName + "\nuid: " + mProfileUrl);
+                    Log.i(TAG, "onActivityResult: data captured");
                     saveData();
 
                 } catch (JSONException e) {
+                    Log.i("READER", "onActivityResult: Error occurred " + e.getLocalizedMessage());
                     e.printStackTrace();
 
                     //if json isn't created, show the contents in a toast.
                     Toast.makeText(this, result.getContents(), Toast.LENGTH_LONG).show();
 
-                    Log.i("READER", "onActivityResult: " + result.getContents());
+
                 }
 
             }
@@ -119,11 +159,20 @@ public class ReaderActivity extends AppCompatActivity {
         //save data.
 
         HashMap<String, String> data = new HashMap<>();
-        data.put(mName, "Entry");
+
+        //get value of mode and set value acc.
+        if (mMode) {
+            data.put(mName, "Entry");
+        } else {
+            data.put(mName, "Exit");
+        }
+
+        mProgressDialog.show();
 
         mReference.child(mDate).child(mTime).setValue(data).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                mProgressDialog.dismiss();
                 if (task.isSuccessful()) {
                     Toast.makeText(ReaderActivity.this, "Task  complete", Toast.LENGTH_SHORT).show();
                 } else {
@@ -133,6 +182,7 @@ public class ReaderActivity extends AppCompatActivity {
         });
     }
 
+    //todo: figure this out.
     private void checkNodeValue() {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Register_Global");
         Query query = reference.limitToLast(1);
@@ -156,6 +206,19 @@ public class ReaderActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.admin_main, menu);
+        return true;
+    }
 
-
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menu_admin_main_logout) {
+            mAuth.signOut();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return false;
+        } else return super.onOptionsItemSelected(item);
+    }
 }

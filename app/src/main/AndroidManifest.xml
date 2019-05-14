@@ -11,8 +11,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".Activities.ReaderActivity"></activity>
+        android:theme="@style/FullScreenTheme">
+        <activity android:name=".Reader.ReaderActivity"></activity>
         <activity android:name=".Activities.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,16 +20,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Admin.AdminMainActivity" />
-        <activity android:name=".Admin.AddUserActivity" />
-        <activity android:name=".Activities.LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <activity
+            android:name=".Admin.AdminMainActivity"
+            android:theme="@style/ActionBarTheme" />
+        <activity
+            android:name=".Admin.AddUserActivity"
+            android:theme="@style/ActionBarTheme" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".Activities.MainActivity" />
+        <activity android:name=".Activities.LoginActivity" />
+        <activity
+            android:name=".Activities.MainActivity"
+            android:theme="@style/ActionBarTheme" />
     </application>
 
 </manifest>

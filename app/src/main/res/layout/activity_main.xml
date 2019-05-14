@@ -19,14 +19,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/user_main_readCode" />
+        app:layout_constraintTop_toBottomOf="@+id/user_main_show_image" />
 
     <Button
-        android:id="@+id/user_main_readCode"
+        android:id="@+id/user_main_show_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="ReadCode"
+        android:text="Show Image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

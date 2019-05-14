@@ -9,11 +9,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.lobxy.societyentrancesystem.Admin.AdminMainActivity;
 import com.lobxy.societyentrancesystem.R;
+import com.lobxy.societyentrancesystem.Reader.ReaderActivity;
 import com.lobxy.societyentrancesystem.Utils.Connection;
 
 public class SplashActivity extends AppCompatActivity {
-
-    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,12 +27,15 @@ public class SplashActivity extends AppCompatActivity {
         Connection connection = new Connection(this);
 
         if (connection.check()) {
-            mAuth = FirebaseAuth.getInstance();
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
             FirebaseUser user = mAuth.getCurrentUser();
 
             if (user != null) {
                 if (user.getEmail().equals("admin@a.com")) {
                     startActivity(new Intent(this, AdminMainActivity.class));
+                    finish();
+                } else if (user.getEmail().equals("reader@a.com")) {
+                    startActivity(new Intent(this, ReaderActivity.class));
                     finish();
                 } else {
                     startActivity(new Intent(this, MainActivity.class));

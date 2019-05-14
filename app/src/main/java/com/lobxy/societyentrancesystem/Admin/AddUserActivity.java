@@ -43,6 +43,9 @@ import java.io.ByteArrayOutputStream;
 
 public class AddUserActivity extends AppCompatActivity {
 
+    private static final int WIDTH = 700;
+    private static final int HEIGHT = 700;
+
     private EditText edit_name, edit_contact, edit_email, edit_password, edit_flat, edit_block, edit_pincode;
 
     private String mName, mContact, mEmail, mPassword, mFlat, mBlock, mQRImageUrl, mUid, mPincode;
@@ -52,9 +55,6 @@ public class AddUserActivity extends AppCompatActivity {
     private StorageReference mStorageRef;
 
     private ProgressBar bar;
-
-    private int mWidth = 700;
-    private int mHeight = 700;
 
     private Connection connection;
 
@@ -199,7 +199,7 @@ public class AddUserActivity extends AppCompatActivity {
 
         try {
 
-            BitMatrix bitMatrix = multiFormatWriter.encode(data, BarcodeFormat.QR_CODE, mWidth, mHeight);
+            BitMatrix bitMatrix = multiFormatWriter.encode(data, BarcodeFormat.QR_CODE, WIDTH, HEIGHT);
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
             Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
 
