@@ -14,6 +14,8 @@ import com.lobxy.societyentrancesystem.Activities.LoginActivity;
 import com.lobxy.societyentrancesystem.R;
 
 public class AdminMainActivity extends AppCompatActivity {
+    //TODO: get details of ledgers into expandable recyclerView and make them all expanded.
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

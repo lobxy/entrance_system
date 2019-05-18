@@ -20,16 +20,15 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.lobxy.societyentrancesystem.R;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "Main Screen";
 
     public static final String QrImagePrefs = "UserData";
-    private static final String TAG = "Main Screen";
 
     private ImageView mQRImage;
 
-    SharedPreferences sharedPreferences;
-    FirebaseAuth mAuth;
+    private FirebaseAuth mAuth;
 
-    //todo....if image not found, figure things out.
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
         if (previouslyEncodedImage == null) {
             Log.i(TAG, "showImage: Image not present");
 
-            //Maybe data was deleted by admin,maybe image not downloaded properly,etc....
+            //Maybe user data was deleted by admin,maybe image not downloaded properly,etc....
+            //Check auth (Won't be able to login again)and check for image again(image will be properly downloaded).
 
             mAuth.signOut();
 
@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         } else {
-            //convert saved string(image) into the image and show it.
+            //convert saved image (string format) to the image and show it.
+
             byte[] b = Base64.decode(previouslyEncodedImage, Base64.DEFAULT);
             Log.i("User", "showImage: bytes: " + b.toString());
             Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);

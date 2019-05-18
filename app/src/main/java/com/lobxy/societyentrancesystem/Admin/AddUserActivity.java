@@ -1,5 +1,6 @@
 package com.lobxy.societyentrancesystem.Admin;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,8 +21,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -32,6 +36,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
+import com.lobxy.societyentrancesystem.Activities.LoginActivity;
 import com.lobxy.societyentrancesystem.Model.User;
 import com.lobxy.societyentrancesystem.R;
 import com.lobxy.societyentrancesystem.Utils.Connection;
@@ -45,6 +50,7 @@ public class AddUserActivity extends AppCompatActivity {
 
     private static final int WIDTH = 700;
     private static final int HEIGHT = 700;
+    private static final String TAG = "AdminAddUser";
 
     private EditText edit_name, edit_contact, edit_email, edit_password, edit_flat, edit_block, edit_pincode;
 
@@ -256,6 +262,9 @@ public class AddUserActivity extends AppCompatActivity {
             public void onFailure(@NonNull Exception e) {
                 bar.setVisibility(View.INVISIBLE);
                 Log.i("saveImage", "onFailure: error: " + e.getMessage());
+
+                //ROLLBACK
+                rollback_deleteUser();
             }
         });
     }
@@ -279,7 +288,61 @@ public class AddUserActivity extends AppCompatActivity {
                     Toast.makeText(AddUserActivity.this, "Error Occurred", Toast.LENGTH_SHORT).show();
                     Log.i("saveUserData", "Error: " + task.getException().getMessage());
 
-                    //TODO: implement rollback
+                    //ROLLBACK
+                    rollback_deleteImage();
+                    rollback_deleteUser();
+                }
+            }
+        });
+
+    }
+
+    private void rollback_deleteImage() {
+
+        StorageReference ref = mStorageRef.child("QrImages").child(mEmail);
+
+        // Delete the file
+        ref.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                startActivity(new Intent(AddUserActivity.this, LoginActivity.class));
+                finish();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Uh-oh, an error occurred!
+            }
+        });
+    }
+
+    private void rollback_deleteUser() {
+
+        FirebaseAuth mAuth2;
+
+        FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
+                .setDatabaseUrl("https://societyentrancesystem.firebaseio.com/")
+                .setApiKey("AIzaSyC85St-pvg1WrSI00DdAtC1bF0FB65FfWo")
+                .setApplicationId("societyentrancesystem").build();
+
+        try {
+            FirebaseApp myApp = FirebaseApp.initializeApp(getApplicationContext(), firebaseOptions, "SocietyEntranceSystem");
+            mAuth2 = FirebaseAuth.getInstance(myApp);
+        } catch (IllegalStateException e) {
+            mAuth2 = FirebaseAuth.getInstance(FirebaseApp.getInstance("SocietyEntranceSystem"));
+        }
+
+        FirebaseUser currentUser = mAuth2.getCurrentUser();
+
+        AuthCredential authCredential = EmailAuthProvider.getCredential(mEmail, mPassword);
+        currentUser.reauthenticate(authCredential).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.i(TAG, "onComplete: User deleted ");
+                } else {
+                    Log.i(TAG, "onComplete: user deleting error: " + task.getException().getLocalizedMessage());
+                    Toast.makeText(AddUserActivity.this, "Error Occured while deleting user", Toast.LENGTH_SHORT).show();
                 }
             }
         });
