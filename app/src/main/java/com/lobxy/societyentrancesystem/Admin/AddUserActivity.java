@@ -36,7 +36,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
-import com.lobxy.societyentrancesystem.Activities.LoginActivity;
+import com.lobxy.societyentrancesystem.User.LoginActivity;
 import com.lobxy.societyentrancesystem.Model.User;
 import com.lobxy.societyentrancesystem.R;
 import com.lobxy.societyentrancesystem.Utils.Connection;

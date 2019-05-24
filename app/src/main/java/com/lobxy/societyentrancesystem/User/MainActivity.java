@@ -1,11 +1,17 @@
-package com.lobxy.societyentrancesystem.Activities;
+package com.lobxy.societyentrancesystem.User;
 
+import android.Manifest;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.fingerprint.FingerprintManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -17,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.lobxy.societyentrancesystem.FingerprintHandler;
 import com.lobxy.societyentrancesystem.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     SharedPreferences sharedPreferences;
+
+    private FingerprintManager mFingerPrintManager;
+    private KeyguardManager mKeyguardManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +55,22 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+                    if (!mFingerPrintManager.isHardwareDetected()) {
+                        Toast.makeText(MainActivity.this, "Finger print scanner not detected", Toast.LENGTH_SHORT).show();
+                    } else if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(MainActivity.this, "Permission not granted", Toast.LENGTH_SHORT).show();
+                    } else if (!mKeyguardManager.isKeyguardSecure()) {
+                        Toast.makeText(MainActivity.this, "Add lock to your phone", Toast.LENGTH_SHORT).show();
+                    } else if (!mFingerPrintManager.hasEnrolledFingerprints()) {
+                        Toast.makeText(MainActivity.this, "Fingerprint not added", Toast.LENGTH_SHORT).show();
+                    } else {
+                        //access fingerprint.
+                        accessFingerPrint();
+                    }
+
+                }
                 showImage();
             }
         });
@@ -92,6 +118,11 @@ public class MainActivity extends AppCompatActivity {
         } else {
             return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void accessFingerPrint() {
+        FingerprintHandler fingerprintHandler = new FingerprintHandler(this);
+        fingerprintHandler.startAuth(mFingerPrintManager, null);
     }
 
     //    @Override

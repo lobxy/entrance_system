@@ -1,4 +1,4 @@
-package com.lobxy.societyentrancesystem.Activities;
+package com.lobxy.societyentrancesystem;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.lobxy.societyentrancesystem.Admin.AdminMainActivity;
 import com.lobxy.societyentrancesystem.R;
 import com.lobxy.societyentrancesystem.Reader.ReaderActivity;
+import com.lobxy.societyentrancesystem.User.LoginActivity;
+import com.lobxy.societyentrancesystem.User.MainActivity;
 import com.lobxy.societyentrancesystem.Utils.Connection;
 
 public class SplashActivity extends AppCompatActivity {

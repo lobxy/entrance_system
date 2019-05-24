@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.lobxy.societyentrancesystem.Activities.LoginActivity;
+import com.lobxy.societyentrancesystem.User.LoginActivity;
 import com.lobxy.societyentrancesystem.R;
 
 public class AdminMainActivity extends AppCompatActivity {

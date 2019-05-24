@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -13,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/FullScreenTheme">
         <activity android:name=".Reader.ReaderActivity"></activity>
-        <activity android:name=".Activities.SplashActivity">
+        <activity android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -27,9 +29,9 @@
             android:name=".Admin.AddUserActivity"
             android:theme="@style/ActionBarTheme" />
 
-        <activity android:name=".Activities.LoginActivity" />
+        <activity android:name=".User.LoginActivity" />
         <activity
-            android:name=".Activities.MainActivity"
+            android:name=".User.MainActivity"
             android:theme="@style/ActionBarTheme" />
     </application>
 

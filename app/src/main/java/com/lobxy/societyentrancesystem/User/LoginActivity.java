@@ -1,4 +1,4 @@
-package com.lobxy.societyentrancesystem.Activities;
+package com.lobxy.societyentrancesystem.User;
 
 import android.app.ProgressDialog;
 import android.content.Context;
