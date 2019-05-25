@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -64,6 +65,9 @@ public class AuthActivity extends AppCompatActivity {
         mEditPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                InputMethodManager methodManager = (InputMethodManager) getApplicationContext().getSystemService(INPUT_METHOD_SERVICE);
+                methodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
                 boolean handled = false;
                 if (actionId == EditorInfo.IME_ACTION_GO) {
                     //call function
@@ -165,7 +169,7 @@ public class AuthActivity extends AppCompatActivity {
 
     private void returnToPreviousActivity(String message, Boolean errorPresent) {
         Intent intent = getIntent();
-        intent.putExtra("Errors", errorPresent);
+        intent.putExtra("errorPresent", errorPresent);
         intent.putExtra("message", message);
         setResult(RESULT_OK, intent);
         finish();

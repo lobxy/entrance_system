@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //start activity for result.
+                startActivityForResult(new Intent(MainActivity.this, AuthActivity.class), REQUEST_CODE);
             }
         });
     }
@@ -103,7 +104,15 @@ public class MainActivity extends AppCompatActivity {
 
             if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
 
-                String requiredValue = data.getStringExtra("key");
+                String message = data.getStringExtra("message");
+                boolean errorPresent = data.getBooleanExtra("errorPresent", false);
+                Log.i(TAG, "onActivityResult: error: " + errorPresent);
+
+                if (errorPresent) {
+                    showError(message);
+                } else {
+                    showImage();
+                }
             }
         } catch (Exception ex) {
             Toast.makeText(MainActivity.this, ex.toString(),
