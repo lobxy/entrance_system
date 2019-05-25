@@ -4,7 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
     <application
@@ -14,7 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/FullScreenTheme">
-        <activity android:name=".Reader.ReaderActivity"></activity>
+        <activity android:name=".User.AuthActivity"></activity>
+        <activity
+            android:name=".Reader.ReaderActivity"
+            android:theme="@style/ActionBarTheme" />
         <activity android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,7 +30,6 @@
         <activity
             android:name=".Admin.AddUserActivity"
             android:theme="@style/ActionBarTheme" />
-
         <activity android:name=".User.LoginActivity" />
         <activity
             android:name=".User.MainActivity"

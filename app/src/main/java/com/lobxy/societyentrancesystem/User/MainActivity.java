@@ -1,17 +1,14 @@
 package com.lobxy.societyentrancesystem.User;
 
-import android.Manifest;
-import android.app.KeyguardManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.fingerprint.FingerprintManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -23,11 +20,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.lobxy.societyentrancesystem.FingerprintHandler;
 import com.lobxy.societyentrancesystem.R;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Main Screen";
+    private static final int REQUEST_CODE = 200;
 
     public static final String QrImagePrefs = "UserData";
 
@@ -36,9 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     SharedPreferences sharedPreferences;
-
-    private FingerprintManager mFingerPrintManager;
-    private KeyguardManager mKeyguardManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,23 +49,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-                    if (!mFingerPrintManager.isHardwareDetected()) {
-                        Toast.makeText(MainActivity.this, "Finger print scanner not detected", Toast.LENGTH_SHORT).show();
-                    } else if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(MainActivity.this, "Permission not granted", Toast.LENGTH_SHORT).show();
-                    } else if (!mKeyguardManager.isKeyguardSecure()) {
-                        Toast.makeText(MainActivity.this, "Add lock to your phone", Toast.LENGTH_SHORT).show();
-                    } else if (!mFingerPrintManager.hasEnrolledFingerprints()) {
-                        Toast.makeText(MainActivity.this, "Fingerprint not added", Toast.LENGTH_SHORT).show();
-                    } else {
-                        //access fingerprint.
-                        accessFingerPrint();
-                    }
-
-                }
-                showImage();
+                //start activity for result.
             }
         });
     }
@@ -102,6 +80,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void showError(String error) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Alert")
+                .setMessage(error)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        //check is any errors are present, if not show image, else show error in alert dialog.
+        try {
+            super.onActivityResult(requestCode, resultCode, data);
+
+            if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+
+                String requiredValue = data.getStringExtra("key");
+            }
+        } catch (Exception ex) {
+            Toast.makeText(MainActivity.this, ex.toString(),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.admin_main, menu);
@@ -120,12 +129,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void accessFingerPrint() {
-        FingerprintHandler fingerprintHandler = new FingerprintHandler(this);
-        fingerprintHandler.startAuth(mFingerPrintManager, null);
-    }
+}
 
-    //    @Override
+//    @Override
 //    protected void onRestart() {
 //        super.onRestart();
 //        mQRImage.setVisibility(View.INVISIBLE);
@@ -138,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 //        mQRImage.setVisibility(View.INVISIBLE);
 //    }
 
-    //  private void getPin() {
+//  private void getPin() {
 //        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //        builder.setTitle("Enter Pin");
 //
@@ -179,5 +185,5 @@ public class MainActivity extends AppCompatActivity {
 //
 //    }
 
-    //EOC
-}
+//EOC
+
