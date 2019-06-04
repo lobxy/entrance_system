@@ -1,4 +1,4 @@
-# entrance_system
+# Society Entrance System
 A Society entrance system using qr codes and firebase with Admin, Reader and User module.
 
 The user/resident can use the qr code generated at the entrance and exit gates and their commute will be recorded into the database.
